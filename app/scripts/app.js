@@ -1,9 +1,36 @@
-
+/**
+ * Created by Greg Christopherson on 3/26/2016.
+ */
+/* eslint-env browser */
 (function() {
   'use strict';
 
-  // Insert injected weather forecast here
-
+  var initialWeatherForecast = {
+    key: 'newyork',
+    label: 'New York, NY',
+    currently: {
+      time: 1453489481,
+      summary: 'Clear',
+      icon: 'partly-cloudy-day',
+      temperature: 52.74,
+      apparentTemperature: 74.34,
+      precipProbability: 0.20,
+      humidity: 0.77,
+      windBearing: 125,
+      windSpeed: 1.52
+    },
+    daily: {
+      data: [
+        {icon: 'clear-day', temperatureMax: 55, temperatureMin: 34},
+        {icon: 'rain', temperatureMax: 55, temperatureMin: 34},
+        {icon: 'snow', temperatureMax: 55, temperatureMin: 34},
+        {icon: 'sleet', temperatureMax: 55, temperatureMin: 34},
+        {icon: 'fog', temperatureMax: 55, temperatureMin: 34},
+        {icon: 'wind', temperatureMax: 55, temperatureMin: 34},
+        {icon: 'partly-cloudy-day', temperatureMax: 55, temperatureMin: 34}
+      ]
+    }
+  };
 
   var app = {
     isLoading: true,
@@ -16,8 +43,7 @@
     daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
   };
 
-
-  /*****************************************************************************
+  /* ***************************************************************************
    *
    * Event listeners for UI elements
    *
@@ -43,6 +69,7 @@
     app.selectedCities.push({key: key, label: label});
     // Remember to save user preferences here
     app.toggleAddDialog(false);
+    app.saveSelectedCities();
   });
 
   document.getElementById('butAddCancel').addEventListener('click', function() {
@@ -50,14 +77,13 @@
     app.toggleAddDialog(false);
   });
 
-
-  /*****************************************************************************
+  /* ***************************************************************************
    *
    * Methods to update/refresh the UI
    *
    ****************************************************************************/
 
-  // Toggles the visibility of the add new city dialog.
+    // Toggles the visibility of the add new city dialog.
   app.toggleAddDialog = function(visible) {
     if (visible) {
       app.addDialog.classList.add('dialog-container--visible');
@@ -80,20 +106,20 @@
     }
     card.querySelector('.description').textContent = data.currently.summary;
     card.querySelector('.date').textContent =
-      new Date(data.currently.time * 1000);
+        new Date(data.currently.time * 1000);
     card.querySelector('.current .icon').classList.add(data.currently.icon);
     card.querySelector('.current .temperature .value').textContent =
-      Math.round(data.currently.temperature);
+        Math.round(data.currently.temperature);
     card.querySelector('.current .feels-like .value').textContent =
-      Math.round(data.currently.apparentTemperature);
+        Math.round(data.currently.apparentTemperature);
     card.querySelector('.current .precip').textContent =
-      Math.round(data.currently.precipProbability * 100) + '%';
+        Math.round(data.currently.precipProbability * 100) + '%';
     card.querySelector('.current .humidity').textContent =
-      Math.round(data.currently.humidity * 100) + '%';
+        Math.round(data.currently.humidity * 100) + '%';
     card.querySelector('.current .wind .value').textContent =
-      Math.round(data.currently.windSpeed);
+        Math.round(data.currently.windSpeed);
     card.querySelector('.current .wind .direction').textContent =
-      data.currently.windBearing;
+        data.currently.windBearing;
     var nextDays = card.querySelectorAll('.future .oneday');
     var today = new Date();
     today = today.getDay();
@@ -102,12 +128,12 @@
       var daily = data.daily.data[i];
       if (daily && nextDay) {
         nextDay.querySelector('.date').textContent =
-          app.daysOfWeek[(i + today) % 7];
+            app.daysOfWeek[(i + today) % 7];
         nextDay.querySelector('.icon').classList.add(daily.icon);
         nextDay.querySelector('.temp-high .value').textContent =
-          Math.round(daily.temperatureMax);
+            Math.round(daily.temperatureMax);
         nextDay.querySelector('.temp-low .value').textContent =
-          Math.round(daily.temperatureMin);
+            Math.round(daily.temperatureMin);
       }
     }
     if (app.isLoading) {
@@ -117,14 +143,13 @@
     }
   };
 
-
-  /*****************************************************************************
+  /* ***************************************************************************
    *
    * Methods for dealing with the model
    *
    ****************************************************************************/
 
-  // Gets a forecast for a specific city and update the card with the data
+    // Gets a forecast for a specific city and update the card with the data
   app.getForecast = function(key, label) {
     var url = 'https://publicdata-weather.firebaseio.com/';
     url += key + '.json';
@@ -153,38 +178,41 @@
     });
   };
 
-  var fakeForecast = {
-    key: 'newyork',
-    label: 'New York, NY',
-    currently: {
-      time: 1453489481,
-      summary: 'Clear',
-      icon: 'partly-cloudy-day',
-      temperature: 60,
-      apparentTemperature: 65,
-      precipProbability: 0.25,
-      humidity: 0.75,
-      windBearing: 125,
-      windSpeed: 1.50
-    },
-    daily: {
-      data: [
-        {icon: 'clear-day', temperatureMax: 60, temperatureMin: 50},
-        {icon: 'rain', temperatureMax: 60, temperatureMin: 50},
-        {icon: 'snow', temperatureMax: 60, temperatureMin: 50},
-        {icon: 'sleet', temperatureMax: 60, temperatureMin: 50},
-        {icon: 'fog', temperatureMax: 60, temperatureMin: 50},
-        {icon: 'wind', temperatureMax: 60, temperatureMin: 50},
-        {icon: 'partly-cloudy-day', temperatureMax: 60, temperatureMin: 50}
-      ]
-    }
-  };
-  // Uncomment the line below to test the app with fake data
-  // app.updateForecastCard(fakeForecast);
-
   // Add code to save the users list of subscribed cities here
 
-  // Add code to check if the user has any subscribed cities, and render 
-  // those or the default data here.
+  // Save list of cities to localStorage, see note below about localStorage.
+  app.saveSelectedCities = function() {
+    var selectedCities = JSON.stringify(app.selectedCities);
+    // IMPORTANT: See notes about use of localStorage.
+    localStorage.selectedCities = selectedCities;
+  };
 
+  /* **************************************************************************
+   *
+   * Code required to start the app
+   *
+   * NOTE: To simplify this getting started guide, we've used localStorage.
+   *   localStorage is a synchronous API and has serious performance
+   *   implications. It should not be used in production applications!
+   *   Instead, check out IDB (https://www.npmjs.com/package/idb) or
+   *   SimpleDB (https://gist.github.com/inexorabletash/c8069c042b734519680c)
+   *
+   ****************************************************************************/
+
+  app.selectedCities = localStorage.selectedCities;
+  if (app.selectedCities) {
+    app.selectedCities = JSON.parse(app.selectedCities);
+    app.selectedCities.forEach(function(city) {
+      app.getForecast(city.key, city.label);
+    });
+  } else {
+    app.updateForecastCard(initialWeatherForecast);
+    app.selectedCities = [
+      {key: initialWeatherForecast.key, label: initialWeatherForecast.label}
+    ];
+    app.saveSelectedCities();
+  }
+
+  // Add code to check if the user has any subscribed cities, and render
+  // those or the default data here.
 })();
